@@ -102,6 +102,7 @@ tasks.withType(JavaCompile).configureEach {
 
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from project(":common").sourceSets.main.resources
     manifest {
         attributes(['Specification-Title'     : mod_name,
                     'Specification-Vendor'    : mod_vendor,
