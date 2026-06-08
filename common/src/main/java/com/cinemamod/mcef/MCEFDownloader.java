@@ -223,7 +223,7 @@ public class MCEFDownloader {
                     continue;
                 }
 
-                if (entry.isSymbolicLink() || entry.isLink()) {
+                if (entry.isSymbolicLink() || entry.getLinkName() != null && !entry.getLinkName().isEmpty()) {
                     MCEF.getLogger().warn("Skipping link tar entry: " + entry.getName());
                     continue;
                 }
