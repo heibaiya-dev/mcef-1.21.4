@@ -15,6 +15,12 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Verify java-cef submodule
+        run: |
+          echo "Checking java-cef submodule..."
+          ls -la common/java-cef/ || echo "java-cef directory is empty or missing"
+          ls common/java-cef/java/ 2>/dev/null || echo "java-cef/java directory is missing"
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -28,4 +34,22 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
+        id: gradle-build
+        run: ./gradlew build --stacktrace 2>&1 | tee build_output.log
+        continue-on-error: true
+
+      - name: Print build output on failure
+        if: steps.gradle-build.outcome == 'failure'
+        run: |
+          echo "## Build Output (last 200 lines)" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -200 build_output.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "### Errors:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          grep -i "error\|FAILURE\|exception" build_output.log | head -80 >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if build failed
+        if: steps.gradle-build.outcome == 'failure'
+        run: exit 1
